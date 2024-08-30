@@ -1,2 +1,7 @@
 # orbit-notifier
-Sends a desktop notification every time orbit (fleetdm) performs a distributed query
+
+Sends a desktop notification every time orbit [fleetdm](https://fleetdm.com/) performs a distributed query on your host.
+
+# License
+
+MIT
