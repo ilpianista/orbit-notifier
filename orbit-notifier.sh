@@ -4,7 +4,7 @@
 set -f
 
 NOTIFICATION_TITLE="Fleet query"
-NOTIFICATION_TIMEOUT="5000" # milliseconds
+NOTIFICATION_TIMEOUT="15000" # milliseconds
 
 # /etc/default/orbit gets overwritten by updates
 SYSTEMD_ORBIT_OVERRIDE=/etc/systemd/system/orbit.service.d/override.conf
