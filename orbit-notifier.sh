@@ -39,10 +39,10 @@ if [[ ! -r $ORBIT_LOG_FILE ]]; then
     exit 1
 fi
 
-tail -n 50 -s 0.3 -F $ORBIT_LOG_FILE | awk '/I.*/{d=0; if($0 ~ "Executing distributed query")d=1}d' | \
+tail -n0 -F $ORBIT_LOG_FILE | awk '/I.*/{d=0; if($0 ~ "Executing distributed query")d=1}d; fflush()' | \
     while read -r q; do \
         query="$q"
-        while read -r -t 0.3 line; do
+        while read -r -t 0.1 line; do
             query="$query"$'\n'"$line"
         done
         notify-send -t $NOTIFICATION_TIMEOUT "$NOTIFICATION_TITLE" "$(echo $query | sed 's/^.*fleet_distributed_query_[^:]*: //')"
