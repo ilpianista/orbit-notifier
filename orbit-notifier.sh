@@ -3,11 +3,21 @@
 # Turn off glob expansion for SELECT * queries
 set -f
 
-NOTIFICATION_TITLE="Fleet query"
-NOTIFICATION_TIMEOUT="15000" # milliseconds
-
 # /etc/default/orbit gets overwritten by updates
 SYSTEMD_ORBIT_OVERRIDE=/etc/systemd/system/orbit.service.d/override.conf
+
+NOTIFICATION_TITLE="Fleet query"
+
+TRUNCATE_SIZE=50M
+
+help() {
+    echo "Usage: $0 [--truncate] [--notification-timeout N]"
+    echo ""
+    echo "Options:"
+    echo "  --truncate                 Truncates the log file to $TRUNCATE_SIZE."
+    echo "  --notification-timeout N   Timeout, in ms, for the notification before it expires."
+    exit
+}
 
 function configure() {
     echo "It looks like orbit isn't configured to logs queries."
@@ -24,6 +34,29 @@ EOF'"
     exit 1
 }
 
+# Parse command-line arguments
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --truncate)
+            TRUNCATE=1
+            shift 1
+            ;;
+        --notification-timeout)
+            timeout="$2"
+            shift 2
+            ;;
+        --help)
+            help
+            ;;
+    esac
+done
+
+if [[ -z $timeout ]]; then
+    NOTIFICATION_TIMEOUT="$timeout"
+else
+    NOTIFICATION_TIMEOUT=15000
+fi
+
 if [[ ! -f $SYSTEMD_ORBIT_OVERRIDE ]]; then
     configure
 fi
@@ -39,11 +72,15 @@ if [[ ! -r $ORBIT_LOG_FILE ]]; then
     exit 1
 fi
 
-tail -n0 -F $ORBIT_LOG_FILE | awk '/I.*/{d=0; if($0 ~ "Executing distributed query")d=1}d; fflush()' | \
+if [[ $TRUNCATE -eq 1 ]]; then
+    sudo truncate -s $TRUNCATE_SIZE "$ORBIT_LOG_FILE"
+fi
+
+tail -n0 -F "$ORBIT_LOG_FILE" | awk '/I.*/{d=0; if($0 ~ "Executing distributed query")d=1}d; fflush()' | \
     while read -r q; do \
         query="$q"
         while read -r -t 0.1 line; do
             query="$query"$'\n'"$line"
         done
-        notify-send -t $NOTIFICATION_TIMEOUT "$NOTIFICATION_TITLE" "$(echo $query | sed 's/^.*fleet_distributed_query_[^:]*: //')"
+        notify-send -t "$NOTIFICATION_TIMEOUT" "$NOTIFICATION_TITLE" "$(echo $query | sed 's/^.*fleet_distributed_query_[^:]*: //')"
     done
