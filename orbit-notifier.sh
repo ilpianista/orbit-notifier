@@ -51,7 +51,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-if [[ -z $timeout ]]; then
+if [[ -n $timeout ]]; then
     NOTIFICATION_TIMEOUT="$timeout"
 else
     NOTIFICATION_TIMEOUT=15000
