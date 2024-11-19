@@ -1,10 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Turn off glob expansion for SELECT * queries
 set -f
 
 # /etc/default/orbit gets overwritten by updates
 SYSTEMD_ORBIT_OVERRIDE=/etc/systemd/system/orbit.service.d/override.conf
+
+ORBIT_LOG_FILE=/var/log/orbit/orbit.log
 
 NOTIFICATION_TITLE="Fleet query"
 
@@ -14,7 +16,8 @@ help() {
     echo "Usage: $0 [--truncate] [--notification-timeout N]"
     echo ""
     echo "Options:"
-    echo "  --truncate                 Truncates the log file to $TRUNCATE_SIZE."
+    echo "  --skip-check               Skip the orbit service inspection."
+    echo "  --truncate                 Truncates the log file to $TRUNCATE_SIZE. Requires sudo."
     echo "  --notification-timeout N   Timeout, in ms, for the notification before it expires."
     exit
 }
@@ -37,6 +40,10 @@ EOF'"
 # Parse command-line arguments
 while [[ $# -gt 0 ]]; do
     case "$1" in
+        --skip-check)
+            SKIP_CHECK=1
+            shift 1
+            ;;
         --truncate)
             TRUNCATE=1
             shift 1
@@ -57,14 +64,16 @@ else
     NOTIFICATION_TIMEOUT=15000
 fi
 
-if [[ ! -f $SYSTEMD_ORBIT_OVERRIDE ]]; then
-    configure
-fi
-if ! grep -q ^Environment=ORBIT_DEBUG=true$ $SYSTEMD_ORBIT_OVERRIDE; then
-    configure
-fi
-if ! grep -q ^Environment=ORBIT_LOG_FILE=/var/log/orbit/orbit.log$ $SYSTEMD_ORBIT_OVERRIDE; then
-    configure
+if [[ $SKIP_CHECK -ne 1 ]]; then
+    if [[ ! -f $SYSTEMD_ORBIT_OVERRIDE ]]; then
+        configure
+    fi
+    if ! grep -q ^Environment=ORBIT_DEBUG=true$ $SYSTEMD_ORBIT_OVERRIDE; then
+        configure
+    fi
+    if ! grep -q ^Environment=ORBIT_LOG_FILE=/var/log/orbit/orbit.log$ $SYSTEMD_ORBIT_OVERRIDE; then
+        configure
+    fi
 fi
 
 if [[ ! -r $ORBIT_LOG_FILE ]]; then

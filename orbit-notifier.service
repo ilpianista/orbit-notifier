@@ -1,0 +1,11 @@
+[Unit]
+After=orbit.service
+Requires=orbit.service
+Description=Orbit Notifier
+
+[Service]
+ExecStart=/usr/local/bin/orbit-notifier
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
