@@ -10,14 +10,11 @@ ORBIT_LOG_FILE=/var/log/orbit/orbit.log
 
 NOTIFICATION_TITLE="Fleet query"
 
-TRUNCATE_SIZE=50M
-
 help() {
-    echo "Usage: $0 [--truncate] [--notification-timeout N]"
+    echo "Usage: $0 [--notification-timeout N] [--skip-check]"
     echo ""
     echo "Options:"
     echo "  --skip-check               Skip the orbit service inspection."
-    echo "  --truncate                 Truncates the log file to $TRUNCATE_SIZE. Requires sudo."
     echo "  --notification-timeout N   Timeout, in ms, for the notification before it expires."
     exit
 }
@@ -42,10 +39,6 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         --skip-check)
             SKIP_CHECK=1
-            shift 1
-            ;;
-        --truncate)
-            TRUNCATE=1
             shift 1
             ;;
         --notification-timeout)
@@ -79,10 +72,6 @@ fi
 if [[ ! -r $ORBIT_LOG_FILE ]]; then
     echo "$ORBIT_LOG_FILE isn't readable. I'm refusing to start!"
     exit 1
-fi
-
-if [[ $TRUNCATE -eq 1 ]]; then
-    sudo truncate -s $TRUNCATE_SIZE "$ORBIT_LOG_FILE"
 fi
 
 tail -n0 -F "$ORBIT_LOG_FILE" | awk '/I.*/{d=0; if($0 ~ "Executing distributed query")d=1}d; fflush()' | \
