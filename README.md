@@ -13,7 +13,7 @@ This script inspect orbit log file which isn't write by default. Thus we need to
 
 ```sh
 sudo mkdir -p /etc/systemd/system/orbit.service.d
-sudo bash -c 'cat <<EOF >$SYSTEMD_ORBIT_OVERRIDE
+sudo bash -c 'cat <<EOF >/etc/systemd/system/orbit.service.d/override.conf
 [Service]
 Environment=ORBIT_DEBUG=true
 Environment=ORBIT_LOG_FILE=/var/log/orbit/orbit.log
