@@ -24,6 +24,12 @@ sudo systemctl restart orbit
 
 ## Install
 
+```sh
+sudo make all
+```
+
+or
+
 1. Copy `orbit-notifier.sh` to `/usr/local/bin/orbit-notifier`.
 1. Copy `orbit-notifier.service` to `/etc/systemd/user/orbit-notifier.service`.
 1. Run `systemctl --user enable --now orbit-notifier`.
